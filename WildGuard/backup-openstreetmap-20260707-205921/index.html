@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wildlife Protection Command</title>
+    <link rel="stylesheet" href="/static/styles.css?v=16" />
+    <link rel="stylesheet" href="/static/osm-map.css?v=2" />
+    </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div class="hero-copy">
+          <p class="eyebrow">MARS</p>
+          <h1>Protection Command</h1>
+          <p class="hero-subtitle">Live telemetry, device registry, camera watch, and role-based security for field operations.</p>
+        </div>
+        <div class="scene3d" aria-hidden="true">
+          <div class="scene-grid"></div>
+          <div class="radar-disc">
+            <span class="sweep"></span>
+            <span class="ping ping-a"></span>
+            <span class="ping ping-b"></span>
+            <span class="ping ping-c"></span>
+          </div>
+          <div class="watchtower">
+            <span></span>
+          </div>
+        </div>
+        <div class="session">
+          <span id="roleBadge">Signed out</span>
+          <button id="logoutBtn" class="ghost hidden" type="button">Logout</button>
+        </div>
+      </section>
+
+      <section class="auth-grid" id="authPanel">
+        <form id="loginForm" class="panel glass-panel">
+          <div class="auth-badge">SECURE ACCESS</div>
+          <h2>Login</h2>
+          <p class="meta">Login first to open Wildlife, Camera, Registry, Alerts, and Security panels.</p>
+          <label>Username<input name="username" value="PREM_COMMAND" autocomplete="username" /></label>
+          <label>Password<input name="password" value="admin123" type="password" autocomplete="current-password" /></label>
+          <button type="submit">Enter command</button>
+        </form>
+
+        <form id="registerForm" class="panel glass-panel">
+          <div class="auth-badge">IDENTITY VAULT</div>
+          <h2>Register</h2>
+          <label>Username<input name="username" autocomplete="username" /></label>
+          <label>Password<input name="password" type="password" autocomplete="new-password" /></label>
+          <label>Role
+            <select name="role">
+              <option>PUBLIC</option>
+              <option>POST_GUARD</option>
+              <option>INTERCEPTOR</option>
+            </select>
+          </label>
+          <label>Invite token<input name="invite_token" placeholder="Paste only WILD-INVITE-..." /></label>
+          <button type="submit">Create identity</button>
+        </form>
+      </section>
+
+      <section class="dashboard hidden" id="dashboard">
+        <nav class="tabs">
+          <button class="tab active" data-tab="map" type="button">Wildlife</button>
+          <button class="tab" data-tab="camera" type="button">Camera</button>
+          <button class="tab" data-tab="ai" type="button">GLOCK AI</button>
+          <button class="tab" data-tab="registry" type="button">Registry</button>
+          <button class="tab" data-tab="signals" type="button">Signals</button>
+          <button class="tab" data-tab="alerts" type="button">Alerts</button>
+          <button class="tab" data-tab="security" type="button">Security</button>
+        </nav>
+
+        <section class="command-strip">
+          <button class="stat-tile" data-jump="map" type="button">
+            <span id="statAnimals">0</span>
+            <small>Tracked wildlife</small>
+          </button>
+          <button class="stat-tile" data-jump="alerts" type="button">
+            <span id="statAlerts">0</span>
+            <small>Active alerts</small>
+          </button>
+          <button class="stat-tile" data-jump="registry" type="button">
+            <span id="statDevices">0</span>
+            <small>Registered devices</small>
+          </button>
+          <button class="stat-tile" data-jump="signals" type="button">
+            <span id="statSignals">0</span>
+            <small>Signal signatures</small>
+          </button>
+          <button class="stat-tile" data-jump="ai" type="button">
+            <span id="statAi">0</span>
+            <small>AI alarms</small>
+          </button>
+        </section>
+
+        <section class="tabview" id="mapView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Telemetry</p>
+              <h2>Wildlife Map</h2>
+            </div>
+            <button id="refreshMap" type="button">Refresh</button>
+          </div>
+                                        <div class="map-tools panel osm-map-tools">
+            <label>Search species<input id="wildlifeSearch" placeholder="Tiger, elephant, leopard..." /></label>
+            <label>Category
+              <select id="categoryFilter">
+                <option value="ALL">All categories</option>
+              </select>
+            </label>
+            <label>Coordinate detail
+              <select id="integrityFilter">
+                <option value="ALL">All visibility</option>
+                <option value="RAW_PRECISION">Raw precision</option>
+                <option value="MASKED_OBFUSCATION">Masked</option>
+              </select>
+            </label>
+            <label>Map layer
+              <select id="mapLayerFilter">
+                <option value="ALL">All layers</option>
+                <option value="WILDLIFE">Wildlife</option>
+                <option value="DEVICE">Devices</option>
+                <option value="ALERT">Alerts</option>
+                <option value="POINT">Pinned points</option>
+              </select>
+            </label>
+            <label>Terrain
+              <select id="terrainLayer">
+                <option value="terrain">Terrain</option>
+                <option value="street">Street grid</option>
+                <option value="satellite">Satellite style</option>
+              </select>
+            </label>
+            <button id="locateMe" type="button">Show my location</button>
+          </div>
+          <div class="panel coordinate-jump">
+            <label>Latitude<input id="gotoLat" inputmode="decimal" placeholder="27.175100" /></label>
+            <label>Longitude<input id="gotoLng" inputmode="decimal" placeholder="85.012300" /></label>
+            <button id="gotoCoords" type="button">Pin coordinates</button>
+          </div>
+          <div class="map-layout osm-map-layout">
+            <div class="osm-map-stack">
+              <div id="miniMap" class="mini-map real-osm-map offline-map" role="application" aria-label="Offline coordinate map"></div>
+              <div id="mapDetails" class="panel map-details">Offline map ready. Select a marker, show your location, or pin latitude and longitude.</div>
+            </div>
+            <div>
+              <div id="mapLegend" class="map-legend"></div>
+              <div id="animalGrid" class="cards"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="cameraView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Live visual feed</p>
+              <h2>Camera Watch</h2>
+              <p id="cameraStatus" class="camera-status">Use this device for phone/laptop camera, or connect a registered IP/mobile camera stream.</p>
+            </div>
+            <div class="button-row">
+              <button id="connectCamera" type="button">Connect stream</button>
+              <button id="startCamera" class="ghost" type="button">Use this device</button>
+              <button id="captureFrame" class="ghost" type="button">Snapshot</button>
+              <button id="stopCamera" class="ghost" type="button">Stop</button>
+            </div>
+          </div>
+          <div class="panel camera-picker">
+            <label>Registered camera
+              <select id="cameraSelect"></select>
+            </label>
+            <label>Stream mode
+              <select id="cameraMode">
+                <option value="auto">Auto</option>
+                <option value="proxy-image">Auto-detect IP/mobile stream</option>
+                <option value="direct-video">Direct video / HLS</option>
+                <option value="web-page">Camera web page</option>
+              </select>
+            </label>
+            <label>This device camera
+              <select id="localCameraSelect">
+                <option value="">Auto rear camera</option>
+              </select>
+            </label>
+            <div id="cameraDetails" class="camera-details">Registered cameras will appear here after login.</div>
+          </div>
+          <div class="camera-layout">
+            <div class="camera-stage">
+              <video id="cameraFeed" autoplay playsinline muted></video>
+              <video id="remoteVideoFeed" autoplay playsinline muted controls></video>
+              <img id="remoteCameraFeed" alt="Registered camera live stream" />
+              <iframe id="remoteCameraPage" title="Registered camera web viewer"></iframe>
+              <canvas id="cameraCanvas" class="hidden"></canvas>
+              <div id="cameraPlaceholder">Registered camera feed will appear here after you connect.</div>
+            </div>
+            <div class="panel camera-side">
+              <h2>Camera Alert</h2>
+              <div class="snapshot-box">
+                <img id="snapshotPreview" alt="Latest camera snapshot" />
+                <span id="snapshotEmpty">No snapshot captured</span>
+              </div>
+              <form id="cameraAlertForm">
+                <label>Sensor<input name="sensor_id" type="number" value="101" /></label>
+                <label>Type
+                  <select name="detected_type">
+                    <option>Human Activity</option>
+                    <option>Weapon</option>
+                    <option>Logging</option>
+                    <option>Vehicle</option>
+                  </select>
+                </label>
+                <label>Name<input name="detected_name" value="Camera sighting" /></label>
+                <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" value="0.85" /></label>
+                <label>Level
+                  <select name="alert_level">
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Low</option>
+                  </select>
+                </label>
+                <button type="submit">Raise camera alert</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="aiView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Autonomous detection</p>
+              <h2>GLOCK AI Alarm Console</h2>
+              <p id="aiStatus" class="camera-status">Automatic watch is ready after login.</p>
+            </div>
+            <div class="button-row">
+              <button id="runAiScan" type="button">Scan now</button>
+              <button id="refreshAiEvents" class="ghost" type="button">Refresh</button>
+            </div>
+          </div>
+          <div id="aiAlarmBanner" class="alarm-banner hidden"></div>
+          <div class="ai-layout">
+            <div>
+              <h3>AI Alarms</h3>
+              <div id="aiEventList" class="list"></div>
+            </div>
+            <form id="objectSearchForm" class="panel ai-search">
+              <h2>Object Search</h2>
+              <label>Find object, threat, species, or device
+                <input name="query" value="weapon" placeholder="weapon, human, vehicle, tiger..." />
+              </label>
+              <button type="submit">Search</button>
+              <div id="objectSearchResults" class="list"></div>
+            </form>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="registryView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Device onboarding</p>
+              <h2>Camera, Sensor & Microphone Registry</h2>
+            </div>
+            <button id="refreshRegistry" type="button">Refresh</button>
+          </div>
+          <div class="registry-layout">
+            <form id="deviceForm" class="panel">
+              <h2>Register Device</h2>
+              <label>Device type
+                <select name="device_type">
+                  <option>CAMERA</option>
+                  <option>SENSOR</option>
+                  <option>MICROPHONE</option>
+                </select>
+              </label>
+              <label>Name<input name="name" value="North Gate Camera" /></label>
+              <label>Location<input name="location" value="Sector Alpha" /></label>
+              <label>Endpoint or stream URL<input name="endpoint" placeholder="rtsp://, http://, mqtt topic, or device IP" /></label>
+              <div class="mini-grid">
+                <label>Latitude<input name="latitude" type="number" step="0.0001" placeholder="27.1750" /></label>
+                <label>Longitude<input name="longitude" type="number" step="0.0001" placeholder="85.0120" /></label>
+              </div>
+              <label>Status
+                <select name="status">
+                  <option>ACTIVE</option>
+                  <option>MAINTENANCE</option>
+                  <option>OFFLINE</option>
+                </select>
+              </label>
+              <button type="submit">Save device</button>
+            </form>
+            <div class="registry-columns">
+              <div>
+                <h3>Cameras</h3>
+                <div id="cameraRegistry" class="list"></div>
+              </div>
+              <div>
+                <h3>Sensors</h3>
+                <div id="sensorRegistry" class="list"></div>
+              </div>
+              <div>
+                <h3>Microphones</h3>
+                <div id="microphoneRegistry" class="list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="signalsView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Acoustic catalog</p>
+              <h2>Signals</h2>
+            </div>
+            <button id="refreshSignals" type="button">Refresh</button>
+          </div>
+          <div class="two-col">
+            <div>
+              <h3>Biological</h3>
+              <div id="bioSignals" class="list"></div>
+            </div>
+            <div>
+              <h3>Threat</h3>
+              <div id="threatSignals" class="list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="alertsView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Field reports</p>
+              <h2>Alerts</h2>
+            </div>
+            <button id="refreshAlerts" type="button">Refresh</button>
+          </div>
+          <form id="alertForm" class="panel inline-form">
+            <label>Sensor<input name="sensor_id" type="number" value="101" /></label>
+            <label>Type
+              <select name="detected_type">
+                <option>Weapon</option>
+                <option>Logging</option>
+                <option>Vehicle</option>
+                <option>Human Activity</option>
+              </select>
+            </label>
+            <label>Name<input name="detected_name" value="Gunshot" /></label>
+            <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" value="0.92" /></label>
+            <label>Level
+              <select name="alert_level">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+            </label>
+            <button type="submit">Raise alert</button>
+          </form>
+          <div id="alertList" class="list"></div>
+        </section>
+
+        <section class="tabview hidden" id="securityView">
+          <div class="security-layout">
+            <form id="inviteForm" class="panel invite-panel">
+              <h2>Generate Invite</h2>
+              <p class="meta">Choose INTERCEPTOR to create a new admin invite.</p>
+              <label>Role
+                <select name="role">
+                  <option>POST_GUARD</option>
+                  <option>INTERCEPTOR</option>
+                </select>
+              </label>
+              <label>Expires in hours<input name="expires_in_hours" type="number" value="24" min="1" /></label>
+              <button type="submit">Generate</button>
+              <output id="inviteOutput"></output>
+            </form>
+            <div>
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Audit</p>
+                  <h2>Recent Logins</h2>
+                </div>
+                <div class="button-row">
+                  <button id="toggleLogs" class="ghost" type="button">Show full audit</button>
+                  <button id="refreshLogs" type="button">Refresh</button>
+                </div>
+              </div>
+              <div id="logList" class="list"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="/static/app.js?v=16"></script>
+    <script src="/static/osm-map.js?v=2"></script>
+    </body>
+</html>
+
+
+
+
+
+
+

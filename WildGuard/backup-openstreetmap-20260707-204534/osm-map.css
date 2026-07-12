@@ -1,0 +1,110 @@
+.osm-map-tools {
+  grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr auto;
+}
+
+.osm-map-layout {
+  grid-template-columns: minmax(380px, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.osm-map-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.real-osm-map {
+  min-height: 560px;
+  transform: none;
+  background: #07120f;
+}
+
+.real-osm-map::before,
+.real-osm-map::after {
+  display: none;
+}
+
+.map-details {
+  min-height: 104px;
+  overflow-wrap: anywhere;
+}
+
+.map-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  background: rgba(5, 20, 17, 0.72);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.map-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.osm-marker-shell {
+  background: transparent;
+  border: 0;
+}
+
+.osm-marker {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #02110e;
+  background: var(--marker-color);
+  border: 2px solid rgba(255, 255, 255, 0.86);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--marker-color) 18%, transparent), 0 10px 24px rgba(0,0,0,0.28);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.osm-marker.alert {
+  animation: beacon 1.15s ease-in-out infinite;
+}
+
+.leaflet-container {
+  font: inherit;
+  background: #07120f;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #07120f;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.leaflet-control-attribution {
+  background: rgba(2, 12, 10, 0.78) !important;
+  color: var(--muted) !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--cyan) !important;
+}
+
+@media (max-width: 860px) {
+  .osm-map-tools,
+  .osm-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .real-osm-map {
+    min-height: 420px;
+  }
+}

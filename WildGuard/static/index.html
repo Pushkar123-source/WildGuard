@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wildlife Protection Command</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/styles.css?v=16" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div class="hero-copy">
+          <p class="eyebrow">Zero-trust wildlife grid</p>
+          <h1>Protection Command</h1>
+          <p class="hero-subtitle">Live telemetry, device registry, camera watch, and role-based security for field operations.</p>
+        </div>
+        <div class="scene3d" aria-hidden="true">
+          <div class="scene-grid"></div>
+          <div class="radar-disc">
+            <span class="sweep"></span>
+            <span class="ping ping-a"></span>
+            <span class="ping ping-b"></span>
+            <span class="ping ping-c"></span>
+          </div>
+          <div class="watchtower">
+            <span></span>
+          </div>
+        </div>
+        <div class="session">
+          <span id="roleBadge">Signed out</span>
+          <button id="logoutBtn" class="ghost hidden" type="button">Logout</button>
+        </div>
+      </section>
+
+      <section class="auth-grid" id="authPanel">
+        <form id="loginForm" class="panel glass-panel">
+          <div class="auth-badge">SECURE ACCESS</div>
+          <h2>Login</h2>
+          <p class="meta">Login first to open Wildlife, Camera, Registry, Alerts, and Security panels.</p>
+          <label>Username<input name="username" value="PREM_COMMAND" autocomplete="username" /></label>
+          <label>Password<input name="password" value="admin123" type="password" autocomplete="current-password" /></label>
+          <button type="submit">Enter command</button>
+        </form>
+
+        <form id="registerForm" class="panel glass-panel">
+          <div class="auth-badge">IDENTITY VAULT</div>
+          <h2>Register</h2>
+          <label>Username<input name="username" autocomplete="username" /></label>
+          <label>Password<input name="password" type="password" autocomplete="new-password" /></label>
+          <label>Role
+            <select name="role">
+              <option>PUBLIC</option>
+              <option>POST_GUARD</option>
+              <option>INTERCEPTOR</option>
+            </select>
+          </label>
+          <label>Invite token<input name="invite_token" placeholder="Paste only WILD-INVITE-..." /></label>
+          <button type="submit">Create identity</button>
+        </form>
+      </section>
+
+      <section class="dashboard hidden" id="dashboard">
+        <nav class="tabs">
+          <button class="tab active" data-tab="map" type="button">Wildlife</button>
+          <button class="tab" data-tab="camera" type="button">Camera</button>
+          <button class="tab" data-tab="registry" type="button">Registry</button>
+          <button class="tab" data-tab="signals" type="button">Signals</button>
+          <button class="tab" data-tab="alerts" type="button">Alerts</button>
+          <button class="tab" data-tab="security" type="button">Security</button>
+        </nav>
+
+        <section class="command-strip">
+          <button class="stat-tile" data-jump="map" type="button">
+            <span id="statAnimals">0</span>
+            <small>Tracked wildlife</small>
+          </button>
+          <button class="stat-tile" data-jump="alerts" type="button">
+            <span id="statAlerts">0</span>
+            <small>Active alerts</small>
+          </button>
+          <button class="stat-tile" data-jump="registry" type="button">
+            <span id="statDevices">0</span>
+            <small>Registered devices</small>
+          </button>
+          <button class="stat-tile" data-jump="signals" type="button">
+            <span id="statSignals">0</span>
+            <small>Signal signatures</small>
+          </button>
+        </section>
+
+        <section class="tabview" id="mapView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Telemetry</p>
+              <h2>Wildlife Map</h2>
+            </div>
+            <button id="refreshMap" type="button">Refresh</button>
+          </div>
+          <div class="map-tools panel">
+            <label>Search species<input id="wildlifeSearch" placeholder="Tiger, elephant, leopard..." /></label>
+            <label>Category
+              <select id="categoryFilter">
+                <option value="ALL">All categories</option>
+              </select>
+            </label>
+            <label>Coordinate detail
+              <select id="integrityFilter">
+                <option value="ALL">All visibility</option>
+                <option value="RAW_PRECISION">Raw precision</option>
+                <option value="MASKED_OBFUSCATION">Masked</option>
+              </select>
+            </label>
+          </div>
+          <div class="map-layout">
+            <div class="map-console">
+              <div id="leafletMap" class="leaflet-map" aria-label="Leaflet wildlife tracking map">
+                <div class="map-empty">Leaflet map is waiting for wildlife coordinates.</div>
+              </div>
+              <div id="radarOverlay" class="radar-overlay" aria-label="Radar wildlife tracking overlay"></div>
+              <div class="radar-controls">
+                <div>
+                  <p class="eyebrow">Radar scan</p>
+                  <strong id="radarStatus">Tracking wildlife signatures</strong>
+                </div>
+                <button id="radarSweepBtn" class="ghost" type="button">Pulse radar</button>
+              </div>
+            </div>
+            <div id="animalGrid" class="cards"></div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="cameraView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Live visual feed</p>
+              <h2>Camera Watch</h2>
+              <p id="cameraStatus" class="camera-status">Open this tab or press Start camera to request permission.</p>
+            </div>
+            <div class="button-row">
+              <button id="startCamera" type="button">Start camera</button>
+              <button id="startAiMonitor" class="secondary" type="button">Start AI monitor</button>
+              <button id="captureFrame" class="ghost" type="button">Snapshot</button>
+              <button id="stopAiMonitor" class="ghost" type="button">Stop AI</button>
+              <button id="stopCamera" class="ghost" type="button">Stop</button>
+            </div>
+          </div>
+          <div class="camera-layout">
+            <div class="camera-stage">
+              <video id="cameraFeed" autoplay playsinline muted></video>
+              <iframe id="remoteCameraFrame" class="hidden" title="Remote device camera feed"></iframe>
+              <canvas id="cameraCanvas" class="hidden"></canvas>
+              <div id="cameraPlaceholder">Camera feed will appear here after permission is allowed.</div>
+            </div>
+            <div class="panel camera-side">
+              <h2>Camera Control</h2>
+              <label>Camera source
+                <select id="cameraDeviceSelect">
+                  <option value="">Auto camera</option>
+                </select>
+              </label>
+              <div class="remote-camera-box">
+                <h3>Other Device Camera</h3>
+                <label>Registered camera
+                  <select id="remoteCameraSelect">
+                    <option value="">Select registered camera</option>
+                  </select>
+                </label>
+                <label>Camera URL
+                  <input id="remoteCameraUrl" placeholder="https://device-camera.local/live or http://192.168.1.20:8080/video" />
+                </label>
+                <div class="button-row compact-actions">
+                  <button id="openRemoteCamera" class="secondary" type="button">Open device camera</button>
+                  <button id="closeRemoteCamera" class="ghost" type="button">Use this device camera</button>
+                </div>
+              </div>
+              <div class="ai-panel">
+                <div class="ai-head">
+                  <div>
+                    <p class="eyebrow">Local vision assistant</p>
+                    <h3>AI Monitor</h3>
+                  </div>
+                  <span id="aiBadge" class="ai-badge">Idle</span>
+                </div>
+                <div class="ai-meter" aria-label="AI motion level">
+                  <span id="aiMotionBar"></span>
+                </div>
+                <div id="aiFeed" class="ai-feed">
+                  <div class="list-item">Start AI monitor to scan live frames for unusual motion and visibility changes.</div>
+                </div>
+              </div>
+              <h2>Camera Alert</h2>
+              <div class="snapshot-box">
+                <img id="snapshotPreview" alt="Latest camera snapshot" />
+                <span id="snapshotEmpty">No snapshot captured</span>
+              </div>
+              <form id="cameraAlertForm">
+                <label>Sensor<input name="sensor_id" type="number" value="101" /></label>
+                <label>Type
+                  <select name="detected_type">
+                    <option>Human Activity</option>
+                    <option>Weapon</option>
+                    <option>Logging</option>
+                    <option>Vehicle</option>
+                  </select>
+                </label>
+                <label>Name<input name="detected_name" value="Camera sighting" /></label>
+                <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" value="0.85" /></label>
+                <label>Level
+                  <select name="alert_level">
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Low</option>
+                  </select>
+                </label>
+                <button type="submit">Raise camera alert</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="registryView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Device onboarding</p>
+              <h2>Camera, Sensor & Microphone Registry</h2>
+            </div>
+            <button id="refreshRegistry" type="button">Refresh</button>
+          </div>
+          <div class="registry-layout">
+            <form id="deviceForm" class="panel">
+              <h2>Register Device</h2>
+              <label>Device type
+                <select name="device_type">
+                  <option>CAMERA</option>
+                  <option>SENSOR</option>
+                  <option>MICROPHONE</option>
+                </select>
+              </label>
+              <label>Name<input name="name" value="North Gate Camera" /></label>
+              <label>Location<input name="location" value="Sector Alpha" /></label>
+              <label>Endpoint or stream URL<input name="endpoint" placeholder="rtsp://, http://, mqtt topic, or device IP" /></label>
+              <div class="mini-grid">
+                <label>Latitude<input name="latitude" type="number" step="0.0001" placeholder="27.1750" /></label>
+                <label>Longitude<input name="longitude" type="number" step="0.0001" placeholder="85.0120" /></label>
+              </div>
+              <label>Status
+                <select name="status">
+                  <option>ACTIVE</option>
+                  <option>MAINTENANCE</option>
+                  <option>OFFLINE</option>
+                </select>
+              </label>
+              <button type="submit">Save device</button>
+            </form>
+            <div class="registry-columns">
+              <div>
+                <h3>Cameras</h3>
+                <div id="cameraRegistry" class="list"></div>
+              </div>
+              <div>
+                <h3>Sensors</h3>
+                <div id="sensorRegistry" class="list"></div>
+              </div>
+              <div>
+                <h3>Microphones</h3>
+                <div id="microphoneRegistry" class="list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="signalsView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Acoustic catalog</p>
+              <h2>Signals</h2>
+            </div>
+            <button id="refreshSignals" type="button">Refresh</button>
+          </div>
+          <div class="two-col">
+            <div>
+              <h3>Biological</h3>
+              <div id="bioSignals" class="list"></div>
+            </div>
+            <div>
+              <h3>Threat</h3>
+              <div id="threatSignals" class="list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tabview hidden" id="alertsView">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Field reports</p>
+              <h2>Alerts</h2>
+            </div>
+            <button id="refreshAlerts" type="button">Refresh</button>
+          </div>
+          <form id="alertForm" class="panel inline-form">
+            <label>Sensor<input name="sensor_id" type="number" value="101" /></label>
+            <label>Type
+              <select name="detected_type">
+                <option>Weapon</option>
+                <option>Logging</option>
+                <option>Vehicle</option>
+                <option>Human Activity</option>
+              </select>
+            </label>
+            <label>Name<input name="detected_name" value="Gunshot" /></label>
+            <label>Confidence<input name="confidence" type="number" min="0" max="1" step="0.01" value="0.92" /></label>
+            <label>Level
+              <select name="alert_level">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+            </label>
+            <button type="submit">Raise alert</button>
+          </form>
+          <div id="alertList" class="list"></div>
+        </section>
+
+        <section class="tabview hidden" id="securityView">
+          <div class="two-col">
+            <form id="inviteForm" class="panel">
+              <h2>Generate Invite</h2>
+              <p class="meta">Choose INTERCEPTOR to create a new admin invite.</p>
+              <label>Role
+                <select name="role">
+                  <option>POST_GUARD</option>
+                  <option>INTERCEPTOR</option>
+                </select>
+              </label>
+              <label>Expires in hours<input name="expires_in_hours" type="number" value="24" min="1" /></label>
+              <button type="submit">Generate</button>
+              <output id="inviteOutput"></output>
+            </form>
+            <div>
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Audit</p>
+                  <h2>Security Logs</h2>
+                </div>
+                <button id="refreshLogs" type="button">Refresh</button>
+              </div>
+              <details class="security-folder">
+                <summary>
+                  <span>Protected entries folder</span>
+                  <small>Audit entries are stored here</small>
+                </summary>
+                <div id="logList" class="list log-list"></div>
+              </details>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/app.js?v=16"></script>
+  </body>
+</html>

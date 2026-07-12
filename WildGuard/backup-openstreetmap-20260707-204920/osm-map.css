@@ -1,0 +1,193 @@
+.osm-map-tools {
+  grid-template-columns: 1.1fr 0.75fr 0.8fr 0.75fr 0.75fr auto;
+}
+
+.coordinate-jump {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.osm-map-layout {
+  grid-template-columns: minmax(380px, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.osm-map-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.real-osm-map {
+  min-height: 620px;
+  transform: none;
+  background: #0b1814;
+  overflow: hidden;
+}
+
+.real-osm-map::before,
+.real-osm-map::after {
+  display: none;
+}
+
+.offline-map {
+  position: relative;
+  border: 1px solid rgba(93, 244, 255, 0.22);
+  box-shadow: inset 0 0 38px rgba(25, 227, 157, 0.14);
+}
+
+.offline-map.terrain-terrain {
+  background:
+    radial-gradient(circle at 22% 20%, rgba(111, 168, 84, 0.58), transparent 25%),
+    radial-gradient(circle at 72% 28%, rgba(98, 134, 76, 0.5), transparent 24%),
+    radial-gradient(circle at 42% 70%, rgba(65, 116, 88, 0.58), transparent 30%),
+    linear-gradient(135deg, #143d31 0%, #1e5a3a 32%, #726b36 55%, #274f41 76%, #10251f 100%);
+}
+
+.offline-map.terrain-street {
+  background:
+    linear-gradient(90deg, rgba(93, 244, 255, 0.13) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(93, 244, 255, 0.13) 1px, transparent 1px),
+    linear-gradient(135deg, #0e201d, #15332d 48%, #0b1916);
+  background-size: 42px 42px, 42px 42px, auto;
+}
+
+.offline-map.terrain-satellite {
+  background:
+    radial-gradient(circle at 28% 30%, rgba(46, 90, 49, 0.72), transparent 21%),
+    radial-gradient(circle at 70% 55%, rgba(86, 82, 49, 0.62), transparent 26%),
+    radial-gradient(circle at 45% 76%, rgba(35, 74, 63, 0.7), transparent 24%),
+    linear-gradient(145deg, #132419, #3d4c2a 36%, #203a34 66%, #07130f);
+  filter: saturate(1.18) contrast(1.1);
+}
+
+.offline-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, transparent 49.7%, rgba(245, 189, 66, 0.44) 50%, transparent 50.3%),
+    linear-gradient(0deg, transparent 49.7%, rgba(245, 189, 66, 0.44) 50%, transparent 50.3%);
+  background-size: 10% 10%, 10% 10%, auto, auto;
+  opacity: 0.82;
+}
+
+.map-axis-label {
+  position: absolute;
+  z-index: 2;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(2, 12, 10, 0.72);
+  border: 1px solid rgba(93, 244, 255, 0.22);
+  color: #d9fff7;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.offline-radar,
+.offline-marker {
+  position: absolute;
+  z-index: 4;
+  border: 0;
+  cursor: pointer;
+}
+
+.offline-radar {
+  width: 92px;
+  height: 92px;
+  margin: -46px 0 0 -46px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--marker-color) 14%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--marker-color) 38%, transparent);
+  animation: offlineRadar 2.4s ease-in-out infinite;
+}
+
+.offline-radar.alert {
+  width: 138px;
+  height: 138px;
+  margin: -69px 0 0 -69px;
+  animation-duration: 1.3s;
+}
+
+.offline-marker {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #02110e;
+  background: var(--marker-color);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--marker-color) 20%, transparent), 0 14px 30px rgba(0,0,0,0.35);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.offline-marker.you {
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  color: #241600;
+  animation: beacon 1.4s ease-in-out infinite;
+}
+
+.offline-marker.point {
+  color: #04100d;
+}
+
+.map-details {
+  min-height: 112px;
+  overflow-wrap: anywhere;
+}
+
+.map-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  background: rgba(5, 20, 17, 0.72);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.map-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+@keyframes offlineRadar {
+  0%, 100% {
+    opacity: 0.36;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.08);
+  }
+}
+
+@media (max-width: 980px) {
+  .osm-map-tools,
+  .coordinate-jump,
+  .osm-map-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .real-osm-map {
+    min-height: 480px;
+  }
+}
